@@ -1,18 +1,37 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+export const failureCodeEnum = z.enum([
+  "insufficient_funds",
+  "expired_card",
+  "do_not_honor",
+  "authentication_required",
+  "generic_decline",
+]);
+
+export type FailureCode = z.infer<typeof failureCodeEnum>;
+
+export const insertPaymentSchema = z.object({
+  customer_name: z.string().min(1),
+  customer_email: z.string().email(),
+  amount: z.number().positive(),
+  currency: z.string().min(1),
+  invoice_id: z.string().min(1),
+  failure_code: failureCodeEnum,
+  payment_date: z.string().min(1),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export interface FailedPayment extends InsertPayment {
+  id: string;
+  recovered: boolean;
+}
+
+export interface DashboardSummary {
+  totalFailedPayments: number;
+  totalFailedAmount: number;
+  countByReason: Record<FailureCode, number>;
+  estimatedRecoverableRevenue: number;
+  recoveredCount: number;
+  recoveredAmount: number;
+}
