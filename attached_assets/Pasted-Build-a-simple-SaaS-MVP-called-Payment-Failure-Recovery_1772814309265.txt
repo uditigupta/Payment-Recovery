@@ -1,0 +1,98 @@
+Build a simple SaaS MVP called “Payment Failure Recovery Tool”.
+
+Product goal:
+This app helps subscription businesses recover failed payments. The first MVP should be lightweight and practical, not enterprise-grade. It should let a user upload failed payment records, analyze likely failure reasons, recommend retry logic, and generate customer email templates.
+
+Target user:
+A small SaaS business, subscription startup, or operations manager who wants to reduce revenue loss from failed recurring payments.
+
+Core MVP scope:
+1. User can upload a CSV file of failed payments.
+2. The app parses the CSV and displays failed payment records in a table.
+3. For each failed payment, the app classifies the failure reason into simple categories such as:
+   - insufficient_funds
+   - expired_card
+   - do_not_honor
+   - authentication_required
+   - generic_decline
+4. For each category, the app recommends a retry strategy.
+5. The app generates a suggested customer email message for each failed payment.
+6. The app shows a dashboard summary:
+   - total failed payments
+   - total failed amount
+   - count by failure reason
+   - estimated recoverable revenue
+7. Add a basic “mark as recovered” action so the user can simulate tracking recovered payments.
+
+Keep this MVP intentionally simple:
+- No real payment processing
+- No real Stripe integration yet
+- No login/authentication required for v1
+- No multi-tenant architecture
+- No background jobs
+- No email sending yet; just generate copyable email templates
+
+Suggested CSV columns:
+- customer_name
+- customer_email
+- amount
+- currency
+- invoice_id
+- failure_code
+- payment_date
+
+Retry recommendation logic:
+- insufficient_funds:
+  recommend retry in 2 days, then 5 days later
+- expired_card:
+  recommend no retry until payment method is updated
+- authentication_required:
+  recommend retry after customer completes verification
+- do_not_honor:
+  recommend one retry after 3 days, then ask for alternative payment method
+- generic_decline:
+  recommend one retry after 2 days
+
+Estimated recoverable revenue logic:
+- insufficient_funds: 60% recoverable
+- expired_card: 40% recoverable
+- authentication_required: 70% recoverable
+- do_not_honor: 25% recoverable
+- generic_decline: 30% recoverable
+
+Email template examples:
+Write friendly, professional email text for each reason. The email should include:
+- customer name
+- invoice amount
+- short explanation
+- clear next step
+- polite tone
+
+UI requirements:
+Create a clean and modern web app with these screens or sections:
+1. Landing header with app title and short description
+2. CSV upload area
+3. Summary dashboard cards
+4. Failed payments table
+5. Detail panel or modal for each payment with:
+   - failure classification
+   - retry recommendation
+   - generated email template
+   - mark as recovered button
+
+Technical requirements:
+- Build with a simple full-stack JavaScript app
+- Use React for frontend
+- Use Node.js/Express for backend if needed
+- Use local in-memory storage or SQLite for simplicity
+- Make the UI responsive and clean
+- Seed the app with demo CSV data in case the user does not upload a file
+
+Nice-to-have if easy:
+- Filter by failure reason
+- Sort by amount
+- Copy email template button
+- Download analyzed results as CSV
+
+Important:
+Do not overengineer this. I want a fast MVP that works locally in Replit and is easy to demo. Focus on usability, clear UI, and realistic payment recovery logic.
