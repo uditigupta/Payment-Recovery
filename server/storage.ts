@@ -23,29 +23,6 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.payments = new Map();
-    this.seedData();
-  }
-
-  private seedData() {
-    const demoPayments: InsertPayment[] = [
-      { customer_name: "Sarah Johnson", customer_email: "sarah.johnson@example.com", amount: 49.99, currency: "USD", invoice_id: "INV-2024-001", failure_code: "insufficient_funds", payment_date: "2024-12-15" },
-      { customer_name: "Michael Chen", customer_email: "m.chen@example.com", amount: 199.00, currency: "USD", invoice_id: "INV-2024-002", failure_code: "expired_card", payment_date: "2024-12-14" },
-      { customer_name: "Emily Rodriguez", customer_email: "e.rodriguez@example.com", amount: 29.99, currency: "USD", invoice_id: "INV-2024-003", failure_code: "authentication_required", payment_date: "2024-12-13" },
-      { customer_name: "James Wilson", customer_email: "j.wilson@example.com", amount: 99.00, currency: "USD", invoice_id: "INV-2024-004", failure_code: "do_not_honor", payment_date: "2024-12-12" },
-      { customer_name: "Lisa Park", customer_email: "lisa.park@example.com", amount: 149.99, currency: "USD", invoice_id: "INV-2024-005", failure_code: "generic_decline", payment_date: "2024-12-11" },
-      { customer_name: "David Kim", customer_email: "d.kim@example.com", amount: 79.00, currency: "USD", invoice_id: "INV-2024-006", failure_code: "insufficient_funds", payment_date: "2024-12-10" },
-      { customer_name: "Amanda Foster", customer_email: "a.foster@example.com", amount: 249.99, currency: "USD", invoice_id: "INV-2024-007", failure_code: "expired_card", payment_date: "2024-12-09" },
-      { customer_name: "Robert Taylor", customer_email: "r.taylor@example.com", amount: 39.99, currency: "USD", invoice_id: "INV-2024-008", failure_code: "authentication_required", payment_date: "2024-12-08" },
-      { customer_name: "Nicole Adams", customer_email: "n.adams@example.com", amount: 119.00, currency: "USD", invoice_id: "INV-2024-009", failure_code: "do_not_honor", payment_date: "2024-12-07" },
-      { customer_name: "Thomas Brooks", customer_email: "t.brooks@example.com", amount: 59.99, currency: "USD", invoice_id: "INV-2024-010", failure_code: "generic_decline", payment_date: "2024-12-06" },
-      { customer_name: "Jennifer Lee", customer_email: "j.lee@example.com", amount: 189.00, currency: "USD", invoice_id: "INV-2024-011", failure_code: "insufficient_funds", payment_date: "2024-12-05" },
-      { customer_name: "Chris Martinez", customer_email: "c.martinez@example.com", amount: 349.99, currency: "USD", invoice_id: "INV-2024-012", failure_code: "expired_card", payment_date: "2024-12-04" },
-    ];
-
-    for (const p of demoPayments) {
-      const id = randomUUID();
-      this.payments.set(id, { ...p, id, recovered: false });
-    }
   }
 
   async getPayments(): Promise<FailedPayment[]> {
