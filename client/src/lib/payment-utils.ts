@@ -16,78 +16,101 @@ export const FAILURE_COLORS: Record<FailureCode, string> = {
   generic_decline: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
 };
 
-export const RECOVERY_RATES: Record<FailureCode, number> = {
-  insufficient_funds: 0.6,
-  expired_card: 0.4,
-  authentication_required: 0.7,
-  do_not_honor: 0.25,
-  generic_decline: 0.3,
+export const FAILURE_BAR_COLORS: Record<FailureCode, string> = {
+  insufficient_funds: "[&>div]:bg-amber-500",
+  expired_card: "[&>div]:bg-red-500",
+  authentication_required: "[&>div]:bg-blue-500",
+  do_not_honor: "[&>div]:bg-purple-500",
+  generic_decline: "[&>div]:bg-gray-500",
 };
 
-export function getRetryRecommendation(code: FailureCode): string {
+export function getRetryRecommendation(code: FailureCode, amount?: number, highValueThreshold: number = 500): { action: string; detail: string; timing: string } {
+  const isHighValue = amount !== undefined && amount >= highValueThreshold;
+
   switch (code) {
     case "insufficient_funds":
-      return "Retry in 2 days, then again 5 days later if still failing. High chance of recovery once funds are available.";
+      return {
+        action: "Retry automatically",
+        timing: isHighValue ? "Retry after 5 days" : "Retry after 48 hours",
+        detail: isHighValue
+          ? "High-value payments with insufficient funds may take longer to resolve. Retry after 5 days, then contact the customer if still failing."
+          : "This is typically a temporary issue. Retry in 48 hours — most customers resolve this quickly once funds are available.",
+      };
     case "expired_card":
-      return "Do not retry until the customer updates their payment method. Send a payment update request immediately.";
+      return {
+        action: "Request payment method update",
+        timing: "Send update request immediately",
+        detail: "The card on file has expired. Do not retry until the customer updates their payment method. Send a payment update request right away.",
+      };
     case "authentication_required":
-      return "Retry after the customer completes 3D Secure or bank verification. Most customers resolve this quickly.";
+      return {
+        action: "Request authentication",
+        timing: "Retry after customer verifies",
+        detail: "The customer's bank requires additional verification (3D Secure). Prompt the customer to complete verification, then retry.",
+      };
     case "do_not_honor":
-      return "Retry once after 3 days. If it fails again, ask the customer for an alternative payment method.";
+      return {
+        action: "Request alternative payment method",
+        timing: "Retry once after 3 days",
+        detail: "The bank declined this transaction without a specific reason. Retry once after 3 days. If it fails again, ask the customer to try a different payment method or contact their bank.",
+      };
     case "generic_decline":
-      return "Retry once after 2 days. If unsuccessful, reach out to the customer for more details.";
+      return {
+        action: "Retry, then contact customer",
+        timing: "Retry after 48 hours",
+        detail: "A general decline was received. Retry once after 48 hours. If unsuccessful, reach out to the customer to investigate further.",
+      };
   }
 }
 
 export function generateEmailTemplate(payment: FailedPayment): string {
   const { customer_name, amount, currency, failure_code, invoice_id } = payment;
-  const formattedAmount = `${currency} ${amount.toFixed(2)}`;
+  const formattedAmount = formatCurrency(amount, currency);
   const firstName = customer_name.split(" ")[0];
 
   switch (failure_code) {
     case "insufficient_funds":
-      return `Subject: Action needed: Payment of ${formattedAmount} could not be processed
+      return `Subject: Payment update — we'll retry your payment of ${formattedAmount}
 
 Hi ${firstName},
 
-We attempted to process your payment of ${formattedAmount} for invoice ${invoice_id}, but it was declined due to insufficient funds.
+We attempted to process your payment of ${formattedAmount} for invoice ${invoice_id} but were unable to complete the transaction. This often happens when there are temporary issues with available funds.
 
-We will automatically retry this payment in 2 days. To avoid any interruption to your service, please ensure sufficient funds are available in your account.
+We'll automatically retry the payment in a couple of days. If you'd like to resolve this sooner, you can update your payment method or ensure sufficient funds are available.
 
-If you have any questions or need to update your payment method, please don't hesitate to reach out.
+If you have any questions, we're happy to help.
 
 Best regards,
 Billing Team`;
 
     case "expired_card":
-      return `Subject: Payment method update required - Invoice ${invoice_id}
+      return `Subject: Action needed — please update your payment method
 
 Hi ${firstName},
 
 Your recent payment of ${formattedAmount} for invoice ${invoice_id} could not be processed because the card on file has expired.
 
-To continue your subscription without interruption, please update your payment method at your earliest convenience.
+To continue your subscription without interruption, please update your payment method:
 
-Here's what you need to do:
 1. Log in to your account
-2. Navigate to Payment Settings
-3. Update your card details
+2. Go to Payment Settings
+3. Add your new card details
 
-If you need any assistance, we're happy to help.
+This only takes a moment. If you need any help, just reply to this email.
 
 Best regards,
 Billing Team`;
 
     case "authentication_required":
-      return `Subject: Payment verification needed - ${formattedAmount}
+      return `Subject: Quick action needed — verify your payment of ${formattedAmount}
 
 Hi ${firstName},
 
-Your payment of ${formattedAmount} for invoice ${invoice_id} requires additional verification from your bank (3D Secure authentication).
+Your payment of ${formattedAmount} for invoice ${invoice_id} requires a quick verification step from your bank (this is a standard security measure).
 
-We'll retry the payment shortly, and your bank may prompt you to verify the transaction. Please keep an eye out for a notification from your bank and approve the payment when prompted.
+We'll retry the payment shortly, and your bank will prompt you to approve it. Please keep an eye out for a notification and approve the transaction when prompted.
 
-This is a standard security measure to protect your account.
+If you have any trouble, don't hesitate to reach out.
 
 Best regards,
 Billing Team`;
@@ -97,26 +120,28 @@ Billing Team`;
 
 Hi ${firstName},
 
-We were unable to process your payment of ${formattedAmount} for invoice ${invoice_id}. Your bank declined the transaction.
+We were unable to process your payment of ${formattedAmount} for invoice ${invoice_id}. Your bank declined the transaction without specifying a reason.
 
-We recommend contacting your bank to authorize the payment, or you can try an alternative payment method.
+We recommend:
+- Contacting your bank to authorize future payments to us
+- Or trying an alternative payment method
 
-We'll attempt one more retry in 3 days. In the meantime, if you'd like to resolve this sooner, please update your payment details or contact us.
+We'll attempt one more retry in a few days. If you'd like to resolve this sooner, please update your payment details or get in touch with us.
 
 Best regards,
 Billing Team`;
 
     case "generic_decline":
-      return `Subject: Payment of ${formattedAmount} was declined
+      return `Subject: We had trouble processing your payment of ${formattedAmount}
 
 Hi ${firstName},
 
 Unfortunately, your payment of ${formattedAmount} for invoice ${invoice_id} was declined by your payment provider.
 
-We'll retry the payment in 2 days. If the issue persists, we recommend:
-- Checking with your bank that online transactions are enabled
-- Trying a different payment method
-- Contacting us for assistance
+We'll retry the payment in a couple of days. In the meantime, you might want to:
+- Check with your bank that online transactions are enabled
+- Try adding a different payment method
+- Contact us if you need any assistance
 
 We're here to help you resolve this quickly.
 
@@ -125,7 +150,7 @@ Billing Team`;
   }
 }
 
-export function formatCurrency(amount: number, currency: string = "USD"): string {
+export function formatCurrency(amount: number, currency: string = "EUR"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,

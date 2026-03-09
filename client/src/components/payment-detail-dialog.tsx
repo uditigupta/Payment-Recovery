@@ -9,9 +9,8 @@ import {
   generateEmailTemplate,
   formatCurrency,
   formatDate,
-  RECOVERY_RATES,
 } from "@/lib/payment-utils";
-import { Copy, CheckCircle, RefreshCw, Mail, TrendingUp } from "lucide-react";
+import { Copy, CheckCircle, RefreshCw, Mail, Clock, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -21,9 +20,10 @@ interface PaymentDetailDialogProps {
   payment: FailedPayment | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  highValueThreshold?: number;
 }
 
-export function PaymentDetailDialog({ payment, open, onOpenChange }: PaymentDetailDialogProps) {
+export function PaymentDetailDialog({ payment, open, onOpenChange, highValueThreshold }: PaymentDetailDialogProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
@@ -43,8 +43,7 @@ export function PaymentDetailDialog({ payment, open, onOpenChange }: PaymentDeta
   if (!payment) return null;
 
   const emailTemplate = generateEmailTemplate(payment);
-  const retryRec = getRetryRecommendation(payment.failure_code as FailureCode);
-  const recoveryRate = RECOVERY_RATES[payment.failure_code as FailureCode];
+  const retryRec = getRetryRecommendation(payment.failure_code as FailureCode, payment.amount, highValueThreshold);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(emailTemplate);
@@ -87,23 +86,30 @@ export function PaymentDetailDialog({ payment, open, onOpenChange }: PaymentDeta
               <RefreshCw className="h-4 w-4 text-muted-foreground" />
               <p className="text-sm font-medium">Failure Classification</p>
             </div>
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ${FAILURE_COLORS[payment.failure_code as FailureCode]}`}>
-                {FAILURE_LABELS[payment.failure_code as FailureCode]}
-              </span>
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" />
-                {Math.round(recoveryRate * 100)}% recovery rate
-              </span>
-            </div>
+            <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ${FAILURE_COLORS[payment.failure_code as FailureCode]}`}>
+              {FAILURE_LABELS[payment.failure_code as FailureCode]}
+            </span>
           </div>
 
           <div className="p-4 rounded-md bg-muted/50">
-            <div className="flex items-center gap-2 mb-2">
-              <RefreshCw className="h-4 w-4 text-primary" />
+            <div className="flex items-center gap-2 mb-3">
+              <Zap className="h-4 w-4 text-primary" />
               <p className="text-sm font-medium">Retry Recommendation</p>
             </div>
-            <p className="text-sm text-muted-foreground" data-testid="text-retry-recommendation">{retryRec}</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs no-default-active-elevate">
+                  {retryRec.action}
+                </Badge>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {retryRec.timing}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed" data-testid="text-retry-recommendation">
+                {retryRec.detail}
+              </p>
+            </div>
           </div>
 
           <div>

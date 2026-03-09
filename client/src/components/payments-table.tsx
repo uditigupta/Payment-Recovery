@@ -32,12 +32,13 @@ import { PaymentDetailDialog } from "./payment-detail-dialog";
 interface PaymentsTableProps {
   payments: FailedPayment[] | undefined;
   isLoading: boolean;
+  highValueThreshold?: number;
 }
 
 type SortField = "amount" | "payment_date" | "customer_name";
 type SortDir = "asc" | "desc";
 
-export function PaymentsTable({ payments, isLoading }: PaymentsTableProps) {
+export function PaymentsTable({ payments, isLoading, highValueThreshold }: PaymentsTableProps) {
   const [selectedPayment, setSelectedPayment] = useState<FailedPayment | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filterCode, setFilterCode] = useState<string>("all");
@@ -280,6 +281,7 @@ export function PaymentsTable({ payments, isLoading }: PaymentsTableProps) {
         payment={selectedPayment}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        highValueThreshold={highValueThreshold}
       />
     </>
   );

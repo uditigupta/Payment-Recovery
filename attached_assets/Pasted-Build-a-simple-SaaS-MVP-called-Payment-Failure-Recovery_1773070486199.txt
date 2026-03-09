@@ -1,0 +1,157 @@
+Build a simple SaaS MVP called “Payment Failure Recovery Tool”.
+
+Product goal:
+This app helps subscription businesses analyze failed payments and identify opportunities to recover lost revenue. The first MVP should be lightweight and practical. It should allow users to upload failed payment records, analyze failure patterns, recommend retry strategies, and generate customer email templates.
+
+Target user:
+A small SaaS business, subscription startup, or operations manager who wants to understand why payments fail and how to recover revenue from those failures.
+
+Core MVP scope:
+
+1. User uploads a CSV file containing failed payment records.
+
+2. The app parses the CSV and displays failed payment records in a table.
+
+3. For each failed payment, the app classifies the failure reason into categories such as:
+   - insufficient_funds
+   - expired_card
+   - do_not_honor
+   - authentication_required
+   - generic_decline
+
+4. The app recommends retry strategies based on failure patterns observed in the data.
+
+5. The app generates a suggested customer email message for each failed payment.
+
+6. The app shows a dashboard summary including:
+   - total failed payments
+   - total failed revenue
+   - breakdown by failure reason
+   - estimated recoverable revenue
+   - suggested recovery strategies
+
+IMPORTANT CHANGE — Recoverable Revenue Estimation
+
+Do NOT hardcode recovery percentages.
+
+Instead, estimate recoverable revenue dynamically using analysis of the uploaded CSV data.
+
+The system should analyze patterns such as:
+- frequency of each failure reason
+- average payment amount per failure type
+- distribution of payment sizes
+- repeated failures for the same customer
+- common failure clusters
+
+Using these patterns, the app should estimate:
+
+1. Which failure types are most likely recoverable
+2. Which failures should be retried vs require customer action
+3. What portion of total failed revenue appears recoverable
+
+Example logic (guidance, not hardcoded rules):
+
+- Failures caused by temporary issues (insufficient funds or authentication_required) are likely recoverable through retry.
+- Failures caused by expired cards likely require customer action.
+- Failures like do_not_honor may require an alternative payment method.
+
+Based on this analysis, calculate an estimated recoverable revenue range and present it clearly.
+
+Example output shown to the user:
+
+Recoverable revenue insight:
+
+"Based on the failure patterns in your uploaded data, approximately €4,200 – €5,100 of the €7,300 failed revenue may be recoverable with retry attempts or payment method updates."
+
+Also provide simple explanations such as:
+
+"Most failures are due to insufficient funds, which are typically temporary and often succeed on retry."
+
+Make sure this explanation is written in clear business language that non-technical users can easily understand.
+
+User-friendly insight examples:
+
+- “42% of failures appear temporary and may succeed on retry.”
+- “Expired cards account for 25% of failures and require customers to update payment methods.”
+- “Large payments above €500 show a higher failure frequency.”
+
+Retry recommendation logic:
+
+Instead of only mapping static rules, combine failure reason and amount patterns to suggest actions such as:
+
+- retry after 48 hours
+- retry after 5 days
+- request payment method update
+- request authentication
+- request alternative payment method
+
+Email template generation:
+
+Generate friendly and professional email text that includes:
+- customer name
+- invoice amount
+- explanation of issue
+- next step for resolution
+
+Example tone:
+
+"Hi John,
+
+We attempted to process your payment of €49 but were unable to complete the transaction. This often happens when there are temporary issues with available funds.
+
+We'll automatically retry the payment in a couple of days. If you'd like to resolve this sooner, you can update your payment method here."
+
+UI requirements:
+
+Create a clean and modern SaaS-style dashboard with:
+
+1. Landing header with app title and description
+2. CSV upload section
+3. Summary dashboard cards
+4. Failure reason distribution chart
+5. Failed payments table
+6. Insight panel explaining recoverable revenue
+7. Detailed payment view with retry suggestions and email template
+8. "Mark as recovered" action
+
+Design goals:
+
+The interface should feel like a small analytics tool.
+
+Prioritize:
+- simple language
+- clear visual summaries
+- charts for failure distribution
+- explanations written for business users
+
+Technical requirements:
+
+Use a simple full-stack JavaScript architecture.
+
+Frontend:
+React
+
+Backend:
+Node.js / Express (only if needed)
+
+Database:
+SQLite or in-memory storage for simplicity
+
+Additional features:
+
+- Include a demo CSV dataset with realistic payment failures
+- If no CSV is uploaded, automatically load sample data
+- Allow sorting and filtering by failure type
+- Provide a button to download the analyzed results as CSV
+
+Important:
+
+Do not overengineer the system.
+
+Focus on:
+- clarity
+- simple analytics
+- user-friendly explanations
+- realistic payment recovery insights
+
+The app should run easily inside Replit and be ready to demo without complex setup.

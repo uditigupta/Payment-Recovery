@@ -27,6 +27,9 @@ export function SummaryCards({ summary, isLoading }: SummaryCardsProps) {
 
   if (!summary) return null;
 
+  const currency = summary.primaryCurrency || "EUR";
+  const recoverableRange = `${formatCurrency(summary.recoverableRevenueLow, currency)} – ${formatCurrency(summary.recoverableRevenueHigh, currency)}`;
+
   const cards = [
     {
       title: "Failed Payments",
@@ -37,24 +40,25 @@ export function SummaryCards({ summary, isLoading }: SummaryCardsProps) {
       testId: "card-failed-payments",
     },
     {
-      title: "Total Failed Amount",
-      value: formatCurrency(summary.totalFailedAmount),
+      title: "Total Failed Revenue",
+      value: formatCurrency(summary.totalFailedAmount, currency),
       icon: DollarSign,
       iconColor: "text-amber-500 dark:text-amber-400",
       bgColor: "bg-amber-50 dark:bg-amber-950/20",
       testId: "card-failed-amount",
     },
     {
-      title: "Estimated Recoverable",
-      value: formatCurrency(summary.estimatedRecoverableRevenue),
+      title: "Est. Recoverable",
+      value: recoverableRange,
       icon: TrendingUp,
       iconColor: "text-emerald-500 dark:text-emerald-400",
       bgColor: "bg-emerald-50 dark:bg-emerald-950/20",
       testId: "card-recoverable",
+      small: true,
     },
     {
       title: "Recovered",
-      value: `${summary.recoveredCount} (${formatCurrency(summary.recoveredAmount)})`,
+      value: `${summary.recoveredCount} (${formatCurrency(summary.recoveredAmount, currency)})`,
       icon: CheckCircle,
       iconColor: "text-blue-500 dark:text-blue-400",
       bgColor: "bg-blue-50 dark:bg-blue-950/20",
@@ -73,7 +77,9 @@ export function SummaryCards({ summary, isLoading }: SummaryCardsProps) {
                 <card.icon className={`h-4 w-4 ${card.iconColor}`} />
               </div>
             </div>
-            <p className="text-2xl font-semibold mt-2 tracking-tight">{card.value}</p>
+            <p className={`font-semibold mt-2 tracking-tight ${"small" in card && card.small ? "text-lg" : "text-2xl"}`}>
+              {card.value}
+            </p>
           </CardContent>
         </Card>
       ))}

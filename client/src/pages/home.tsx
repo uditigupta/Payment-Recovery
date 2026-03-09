@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FailedPayment, DashboardSummary } from "@shared/schema";
 import { SummaryCards } from "@/components/summary-cards";
 import { FailureBreakdown } from "@/components/failure-breakdown";
+import { InsightsPanel } from "@/components/insights-panel";
 import { CsvUpload } from "@/components/csv-upload";
 import { PaymentsTable } from "@/components/payments-table";
 import { Shield, FileSpreadsheet, BarChart3, Mail } from "lucide-react";
@@ -27,8 +28,8 @@ export default function Home() {
                 <Shield className="h-5 w-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold tracking-tight">Payment Recovery</h1>
-                <p className="text-xs text-muted-foreground">Recover failed subscription payments</p>
+                <h1 className="text-lg font-semibold tracking-tight" data-testid="text-app-title">Payment Failure Recovery</h1>
+                <p className="text-xs text-muted-foreground">Analyze failed payments and recover lost revenue</p>
               </div>
             </div>
           </div>
@@ -41,7 +42,7 @@ export default function Home() {
             <div className="text-center py-8">
               <h2 className="text-2xl font-semibold tracking-tight mb-2">Get started with payment recovery</h2>
               <p className="text-muted-foreground max-w-lg mx-auto">
-                Upload a CSV file of your failed payments to analyze failure reasons, get retry recommendations, and generate customer email templates.
+                Upload a CSV file of your failed payments to analyze failure patterns, get smart retry recommendations, and generate customer email templates.
               </p>
             </div>
 
@@ -61,8 +62,8 @@ export default function Home() {
                 <div className="mx-auto w-10 h-10 rounded-md bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center mb-3">
                   <BarChart3 className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                 </div>
-                <h3 className="text-sm font-medium mb-1">Analyze Failures</h3>
-                <p className="text-xs text-muted-foreground">Classify failure reasons and get smart retry recommendations</p>
+                <h3 className="text-sm font-medium mb-1">Analyze Patterns</h3>
+                <p className="text-xs text-muted-foreground">Dynamic analysis of failure reasons, amounts, and recovery potential</p>
               </div>
               <div className="text-center p-5 rounded-md bg-card">
                 <div className="mx-auto w-10 h-10 rounded-md bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center mb-3">
@@ -83,13 +84,15 @@ export default function Home() {
           <>
             <SummaryCards summary={summary} isLoading={summaryLoading} />
 
+            <InsightsPanel summary={summary} />
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-1 space-y-4">
                 <CsvUpload />
                 <FailureBreakdown summary={summary} />
               </div>
               <div className="lg:col-span-2">
-                <PaymentsTable payments={payments} isLoading={paymentsLoading} />
+                <PaymentsTable payments={payments} isLoading={paymentsLoading} highValueThreshold={summary?.highValueThreshold} />
               </div>
             </div>
           </>

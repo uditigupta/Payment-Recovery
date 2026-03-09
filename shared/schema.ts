@@ -27,11 +27,30 @@ export interface FailedPayment extends InsertPayment {
   recovered: boolean;
 }
 
+export interface FailureTypeAnalysis {
+  code: FailureCode;
+  count: number;
+  percentage: number;
+  totalAmount: number;
+  avgAmount: number;
+  repeatedCustomerCount: number;
+  estimatedRecoveryRate: number;
+  recoverableAmount: number;
+  action: "retry" | "customer_action" | "alternative_method";
+  actionLabel: string;
+}
+
 export interface DashboardSummary {
   totalFailedPayments: number;
   totalFailedAmount: number;
   countByReason: Record<FailureCode, number>;
-  estimatedRecoverableRevenue: number;
+  recoverableRevenueLow: number;
+  recoverableRevenueHigh: number;
   recoveredCount: number;
   recoveredAmount: number;
+  failureAnalysis: FailureTypeAnalysis[];
+  insights: string[];
+  highValueThreshold: number;
+  highValueFailureCount: number;
+  primaryCurrency: string;
 }
